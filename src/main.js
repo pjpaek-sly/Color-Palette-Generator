@@ -1,6 +1,7 @@
 import './style.css';
 import { presets, presetGroups, DEFAULT_PRESET } from './presets.js';
 import { generateScale, hexToLch } from './color-engine.js';
+import { renderLightnessChart } from './lightness-chart.js';
 
 // ── State ───────────────────────────────────────────
 
@@ -8,6 +9,7 @@ let nextId = 1;
 
 const state = {
   presetKey: DEFAULT_PRESET,
+  customLightness: null, // null = use preset defaults, array = user-adjusted
   colors: [
     { id: nextId++, name: 'Blue', hex: '#3b82f6' },
     { id: nextId++, name: 'Red', hex: '#ef4444' },
@@ -25,6 +27,18 @@ const colorInputs = document.getElementById('color-inputs');
 const palettes = document.getElementById('palettes');
 const addColorBtn = document.getElementById('add-color-btn');
 const toast = document.getElementById('toast');
+const lightnessChart = document.getElementById('lightness-chart');
+const resetLightnessBtn = document.getElementById('reset-lightness-btn');
+
+// ── Helpers ─────────────────────────────────────────
+
+function getActivePreset() {
+  const base = presets[state.presetKey];
+  if (state.customLightness) {
+    return { ...base, lightness: state.customLightness };
+  }
+  return base;
+}
 
 // ── Preset dropdown ─────────────────────────────────
 
@@ -48,7 +62,26 @@ function updateStopsInfo() {
   const p = presets[state.presetKey];
   const first = p.stops[0];
   const last = p.stops[p.stops.length - 1];
-  stopsInfo.textContent = `${p.stops.length} stops (${first}\u2013${last})`;
+  const custom = state.customLightness ? ' (custom)' : '';
+  stopsInfo.textContent = `${p.stops.length} stops (${first}\u2013${last})${custom}`;
+}
+
+// ── Lightness chart ─────────────────────────────────
+
+function onLightnessChange(index, newL) {
+  if (!state.customLightness) {
+    state.customLightness = [...presets[state.presetKey].lightness];
+  }
+  state.customLightness[index] = newL;
+  resetLightnessBtn.hidden = false;
+  updateStopsInfo();
+  renderPalettes();
+}
+
+function renderChart() {
+  const preset = presets[state.presetKey];
+  renderLightnessChart(lightnessChart, preset, state.customLightness, onLightnessChange);
+  resetLightnessBtn.hidden = !state.customLightness;
 }
 
 // ── Color inputs ────────────────────────────────────
@@ -87,7 +120,7 @@ function renderColorInputs() {
 
 function renderPalettes() {
   palettes.innerHTML = '';
-  const preset = presets[state.presetKey];
+  const preset = getActivePreset();
 
   for (const color of state.colors) {
     const scale = generateScale(color.hex, preset);
@@ -115,6 +148,7 @@ function renderPalettes() {
       el.dataset.hex = swatch.hex;
       el.innerHTML = `
         <span class="swatch-label">${swatch.stop}</span>
+        <span class="swatch-lightness">L${Math.round(swatch.l)}</span>
         <span class="swatch-hex">${swatch.hex.toUpperCase()}</span>
       `;
       row.appendChild(el);
@@ -159,6 +193,7 @@ function escapeHtml(str) {
 
 function render() {
   updateStopsInfo();
+  renderChart();
   renderColorInputs();
   renderPalettes();
 }
@@ -167,6 +202,7 @@ function render() {
 
 presetSelect.addEventListener('change', (e) => {
   state.presetKey = e.target.value;
+  state.customLightness = null; // reset custom values on preset change
   render();
 });
 
@@ -178,6 +214,11 @@ addColorBtn.addEventListener('click', () => {
     name: `Color ${state.colors.length + 1}`,
     hex: randomHex,
   });
+  render();
+});
+
+resetLightnessBtn.addEventListener('click', () => {
+  state.customLightness = null;
   render();
 });
 

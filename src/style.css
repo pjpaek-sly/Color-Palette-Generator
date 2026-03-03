@@ -108,6 +108,117 @@ select:focus {
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Lightness Visualization ─────────────────────── */
+
+.lightness-viz {
+  margin-bottom: 24px;
+}
+
+.viz-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.viz-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.btn-reset {
+  background: none;
+  border: 1px solid #ddd;
+  color: #888;
+  font-size: 12px;
+  padding: 6px 14px;
+}
+
+.btn-reset[hidden] {
+  display: none;
+}
+
+.btn-reset:hover {
+  border-color: #bbb;
+  color: #555;
+  background: #f9f9f9;
+}
+
+.lightness-chart {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 16px 12px 8px;
+  overflow-x: auto;
+}
+
+.lightness-chart svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  min-width: 400px;
+}
+
+.lc-dot {
+  cursor: grab;
+  transition: r 0.1s;
+}
+
+.lc-dot-group:hover .lc-dot {
+  r: 7;
+}
+
+.lc-dragging .lc-dot {
+  cursor: grabbing;
+}
+
+.lc-label {
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+
+.lc-dot-group:hover .lc-label {
+  opacity: 1;
+}
+
+.lc-dragging .lc-label {
+  opacity: 1;
+}
+
+.viz-legend {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+  padding-left: 4px;
+}
+
+.viz-legend-item {
+  font-size: 11px;
+  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.viz-legend-item::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.viz-legend-light::before {
+  background: rgba(255, 200, 50, 0.2);
+  border: 1px solid rgba(255, 200, 50, 0.4);
+}
+
+.viz-legend-dark::before {
+  background: rgba(30, 30, 80, 0.1);
+  border: 1px solid rgba(30, 30, 80, 0.2);
+}
+
 /* ── Master Colors ───────────────────────────────── */
 
 .master-colors {
@@ -361,13 +472,24 @@ select:focus {
   opacity: 0.85;
 }
 
+.swatch-lightness {
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  opacity: 0.4;
+  line-height: 1;
+  margin-top: 2px;
+}
+
 .swatch-text-dark .swatch-label,
-.swatch-text-dark .swatch-hex {
+.swatch-text-dark .swatch-hex,
+.swatch-text-dark .swatch-lightness {
   color: #1a1a2e;
 }
 
 .swatch-text-light .swatch-label,
-.swatch-text-light .swatch-hex {
+.swatch-text-light .swatch-hex,
+.swatch-text-light .swatch-lightness {
   color: #fff;
 }
 
@@ -437,5 +559,10 @@ select:focus {
 
   .swatch-label {
     font-size: 10px;
+  }
+
+  .viz-legend {
+    flex-direction: column;
+    gap: 6px;
   }
 }
