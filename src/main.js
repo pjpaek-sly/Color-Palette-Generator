@@ -1,15 +1,27 @@
 import './style.css';
-import { presets, presetGroups, DEFAULT_PRESET } from './presets.js';
 import { generateScale, hexToLch } from './color-engine.js';
 import { renderLightnessChart } from './lightness-chart.js';
+
+function linearLightness(count, lightMax = 97, lightMin = 10) {
+  return Array.from({ length: count }, (_, i) =>
+    Math.round(lightMax - (lightMax - lightMin) * (i / (count - 1)))
+  );
+}
+
+function generatePresetFromCount(count) {
+  return {
+    stops: Array.from({ length: count }, (_, i) => (i + 1) * 100),
+    lightness: linearLightness(count),
+  };
+}
 
 // ── State ───────────────────────────────────────────
 
 let nextId = 1;
 
 const state = {
-  presetKey: DEFAULT_PRESET,
-  customLightness: null, // null = use preset defaults, array = user-adjusted
+  stopCount: 11,
+  customLightness: null, // null = use default linear distribution, array = user-adjusted
   colors: [
     { id: nextId++, name: 'Blue', hex: '#3b82f6' },
     { id: nextId++, name: 'Red', hex: '#ef4444' },
@@ -21,8 +33,7 @@ const state = {
 
 // ── DOM refs ────────────────────────────────────────
 
-const presetSelect = document.getElementById('preset-select');
-const stopsInfo = document.getElementById('stops-info');
+const stopsSelect = document.getElementById('stops-select');
 const colorInputs = document.getElementById('color-inputs');
 const palettes = document.getElementById('palettes');
 const addColorBtn = document.getElementById('add-color-btn');
@@ -33,53 +44,39 @@ const resetLightnessBtn = document.getElementById('reset-lightness-btn');
 // ── Helpers ─────────────────────────────────────────
 
 function getActivePreset() {
-  const base = presets[state.presetKey];
+  const base = generatePresetFromCount(state.stopCount);
   if (state.customLightness) {
     return { ...base, lightness: state.customLightness };
   }
   return base;
 }
 
-// ── Preset dropdown ─────────────────────────────────
+// ── Stops dropdown ──────────────────────────────────
 
-function buildPresetDropdown() {
-  presetSelect.innerHTML = '';
-  for (const group of presetGroups) {
-    const optgroup = document.createElement('optgroup');
-    optgroup.label = group.label;
-    for (const key of group.keys) {
-      const opt = document.createElement('option');
-      opt.value = key;
-      opt.textContent = presets[key].name;
-      if (key === state.presetKey) opt.selected = true;
-      optgroup.appendChild(opt);
-    }
-    presetSelect.appendChild(optgroup);
+function buildStopsDropdown() {
+  stopsSelect.innerHTML = '';
+  for (let count = 5; count <= 16; count++) {
+    const opt = document.createElement('option');
+    opt.value = count;
+    opt.textContent = `${count} stops`;
+    if (count === state.stopCount) opt.selected = true;
+    stopsSelect.appendChild(opt);
   }
-}
-
-function updateStopsInfo() {
-  const p = presets[state.presetKey];
-  const first = p.stops[0];
-  const last = p.stops[p.stops.length - 1];
-  const custom = state.customLightness ? ' (custom)' : '';
-  stopsInfo.textContent = `${p.stops.length} stops (${first}\u2013${last})${custom}`;
 }
 
 // ── Lightness chart ─────────────────────────────────
 
 function onLightnessChange(index, newL) {
   if (!state.customLightness) {
-    state.customLightness = [...presets[state.presetKey].lightness];
+    state.customLightness = [...generatePresetFromCount(state.stopCount).lightness];
   }
   state.customLightness[index] = newL;
   resetLightnessBtn.hidden = false;
-  updateStopsInfo();
   renderPalettes();
 }
 
 function renderChart() {
-  const preset = presets[state.presetKey];
+  const preset = generatePresetFromCount(state.stopCount);
   renderLightnessChart(lightnessChart, preset, state.customLightness, onLightnessChange);
   resetLightnessBtn.hidden = !state.customLightness;
 }
@@ -192,7 +189,6 @@ function escapeHtml(str) {
 // ── Full render ─────────────────────────────────────
 
 function render() {
-  updateStopsInfo();
   renderChart();
   renderColorInputs();
   renderPalettes();
@@ -200,9 +196,9 @@ function render() {
 
 // ── Event handlers ──────────────────────────────────
 
-presetSelect.addEventListener('change', (e) => {
-  state.presetKey = e.target.value;
-  state.customLightness = null; // reset custom values on preset change
+stopsSelect.addEventListener('change', (e) => {
+  state.stopCount = Number(e.target.value);
+  state.customLightness = null;
   render();
 });
 
@@ -279,5 +275,5 @@ function hslToHex(h, s, l) {
 
 // ── Init ────────────────────────────────────────────
 
-buildPresetDropdown();
+buildStopsDropdown();
 render();
