@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LCH Color Palette Generator</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <div class="header-content">
+        <h1>LCH Color Palette Generator</h1>
+        <p class="subtitle">Perceptually uniform color scales using the LCH color space</p>
+      </div>
+    </header>
+
+    <section class="controls">
+      <div class="controls-row">
+        <div class="control-group">
+          <label for="preset-select">Framework</label>
+          <select id="preset-select"></select>
+        </div>
+        <div class="control-group">
+          <label>Stops</label>
+          <span id="stops-info" class="stops-info"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="master-colors">
+      <div class="section-header">
+        <h2>Master Colors</h2>
+        <button id="add-color-btn" class="btn btn-add">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Add Color
+        </button>
+      </div>
+      <div id="color-inputs" class="color-inputs"></div>
+    </section>
+
+    <section id="palettes" class="palettes"></section>
+
+    <div id="toast" class="toast"></div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
